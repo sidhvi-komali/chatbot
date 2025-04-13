@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gemini AI Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+      }
+  
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        margin-top: 0;
+        color: var(--title-color); 
+        text-shadow: 0 0 10px var(--shadow-color);
+      }
+  
+      select, input, button {
+        font-size: 16px;
+        border-radius: 10px;
+        border: none;
+        background-color: var(--select-color);
+        color: var(--text-color);
+        padding: 10px 15px;
+        margin: 5px;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+  
+      input#user-input {
+        width: 300px;
+        padding: 10px 15px;
+        border-radius: 25px;
+        border: 2px solid var(--chat-border);
+        outline: none;
+        font-size: 16px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        transition: border 0.3s ease;
+      }
+      button {
+        background-color: var(--button-bg);
+        color: var(--text-color);
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+  
+      button:hover {
+        background-color: var(--hover-color);
+        transform: scale(1.05);
+      }
+  
+      #chat-box {
+        width: 600px;
+        height: 350px;
+        margin: 20px auto;
+        overflow-y: scroll;
+        padding: 10px;
+        background-color: var(--chatbox-color);
+        border: 2px solid var(--chat-border);
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+      }
+
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }  
+
+      .message {
+        animation: fadeInUp 0.3s ease;
+        padding: 8px 12px;
+        border-radius: 15px;
+        display: inline-block;
+        max-width: 80%;
+        margin: 8px 0;
+      }
+
+      .user {
+        background-color: var(--user-bubble);
+        color: var(--user-text);
+        align-self: flex-start;
+      }
+
+      .bot {
+        background-color: var(--user-bubble);
+        color: var(--user-text);
+        align-self: flex-end;
+      }
+      #bruise-section {
+        display: none;
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #2a2a40;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 600px;
+      }
+  
+      #result {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+  
+      .toggle-btn {
+        background: var(--button-bg);
+        color: var(--text-color);
+        margin-top: 10px;
+      }
+  
+      .toggle-btn:hover {
+        background: var(--hover-color);
+      }
+      :root {
+        --title-color: #272727;
+        --shadow-color: #676767;
+        --select-color: #c3c3c3;
+        --bg-color: #ffffff;
+        --hover-color: #f0f0f0;
+        --chatbox-color: #b4b8c9;
+        --button-bg: #a7b2ce;
+        --text-color: #000000;
+        --bot-bubble: #f1f0f0;
+        --user-bubble: #63afff;
+        --user-text: #ffffff;
+      }
+
+      .dark-mode {
+        --title-color: #878787;
+        --select-color: #2c2c2c;
+        --hover-color: #3a3a3a;
+        --bg-color: #1e1e1e;
+        --chatbox-color: #676767;
+        --text-color: #e0e0e0;
+        --bot-bubble: #ffffff;
+        --button-bg: #727272;
+        --user-bubble: #587392;
+        --user-text: #ffffff;
+      }
+      #imagePreview {
+        margin-top: 10px;
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        display: none;
+      }
+  
+      .control-buttons {
+        margin-top: 15px;
+        --button-bg: var(--select-color);
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }  
+  
+      #chat-box {
+        scrollbar-width: thin;
+        scrollbar-color: #7e99ce #bac6f4;
+      }
+
+      #chat-box::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      #chat-box::-webkit-scrollbar-track {
+        background: #bac6f4;
+        border-radius: 10px;
+      }
+
+      #chat-box::-webkit-scrollbar-thumb {
+        background-color: #7e99ce;
+        border-radius: 10px;
+      }
+      
+  </style>
+</head>
+  
+<body>
+  <h1>AI Chatbot</h1>
+
+  <label for="preamble">Select Chatbot Type:</label>
+  <select id="preamble" onchange="handlePreambleChange()">
+    <option value="You are a math helper. Answer in 2 sentences.">Math Helper</option>
+    <option value="You are a doctor. Answer in 2 sentences. Provide one line evidence with a link.">Doctor</option>
+    <option value="You are a travel expert. Recommend destinations and give short tips.">Travel Guide</option>
+    <option value="You are a coding assistant. Keep answers short and add one-liner examples.">Code Helper</option>
+    <option value="You are a mental wellness coach. Respond in a calming and supportive tone.">Wellness Coach</option>
+    <option value="You are a history teacher. Answer in 2-3 sentences and include 1 historical fact.">History Buff</option>
+    <option value="You are a sarcastic chatbot. Respond with dry humor in 2 short lines.">Sarcastic Bot</option>
+    <option value="You are a friendly chatbot. Answer casually in 2 short sentences.">Casual Conversation</option>
+
+  </select>
+  <div class="control-buttons">
+    <button class="toggle-btn" onclick="toggleHistory()">📜Show History</button>
+    <button class="toggle-btn" onclick="clearHistory()">Delete History</button>
+    <button onclick="toggleTheme()" id="theme-toggle">Light Mode</button>
+  </div>
+
+  <div id="history-box" style="display:none; width: 90%; max-width: 700px; margin-top: 20px; background: var(--hover-color); border-radius: 10px; padding: 20px;">
+    <h3>Chat History</h3>
+    <div id="history-list" style="max-height: 300px; overflow-y: auto;"></div>
+  </div>
+  <div id="chat-box"></div>
+
+  <div style="display: flex; justify-content: center; align-items: center;">
+    <input id="user-input" type="text" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+    <button id="mic-btn" onclick="startVoice()">🎤</button>
+  </div>
+  <div id="loading" style="display:none;">Typing...</div>
+  <div id="mic-status"></div>
+
+  <div id="bruise-section">
+    <h2>Bruise Analyzer</h2>
+    <form id="uploadForm" action="/analyze_bruise" method="POST" enctype="multipart/form-data">
+      <div id="dragDropArea" class="drag-drop-area">
+        <p>Drag and drop your bruise image here or click to upload</p>
+        <input
+          type="file"
+          id="bruise_image"
+          name="bruise_image"
+          accept="image/*"
+          capture="environment"
+          required
+          style="display: none;"
+        >
+        <button type="submit">Upload and Analyze Bruise</button>
+      </div>
+    </form>
+    <img id="imagePreview" src="" alt="Preview of uploaded image">
+    <div id="result" style="margin-top: 20px;"></div>
+  </div>
+
+  <script>
+    const input = document.getElementById("user-input");
+    const micStatus = document.getElementById("mic-status");
+    let recognition = null;
+    let isRecording = false;
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+      const toggle = document.getElementById("theme-toggle");
+      toggle.textContent = document.body.classList.contains("dark-mode") ? "Dark Mode" : "Light Mode";
+    }
+
+    function sendMessage() {
+      const message = input.value.trim();
+      if (!message) return;
+
+      const preamble = document.getElementById("preamble").value;
+
+      appendMessage("You", message, "user");
+      input.value = "";
+
+      fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, preamble })
+      })
+      .then(res => res.json())
+      .then(data => {
+        appendMessage("Bot", data.reply, "bot");
+      })
+      .catch(err => {
+        appendMessage("Error", "Could not connect to server.", "bot");
+        console.error(err);
+      });
+    }
+
+    function appendMessage(sender, text, className) {
+      const box = document.getElementById("chat-box");
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message " + className;
+
+      const avatar = document.createElement("span");
+      avatar.className = "avatar";
+      avatar.textContent = sender === "You" ? "You: " : "Bot: ";
+
+      const textSpan = document.createElement("span");
+      textSpan.className = "message-text";
+
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(textSpan);
+      box.appendChild(messageDiv);
+      box.scrollTop = box.scrollHeight;
+
+      // Animate typing for bot only
+      if (className === "bot") {
+        let i = 0;
+        const interval = setInterval(() => {
+          if (i < text.length) {
+            textSpan.textContent += text.charAt(i);
+            i++;
+            box.scrollTop = box.scrollHeight;
+          } else {
+            clearInterval(interval);
+          }
+        }, 30); // adjust typing speed here
+      } else {
+        textSpan.textContent = text;
+      }
+    }
+
+    function startVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Your browser does not support Speech Recognition. Try Chrome.");
+        return;
+      }
+
+      if (!recognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          input.value = transcript;
+          sendMessage();
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+          micStatus.textContent = "⚠️ Error during recognition.";
+        };
+
+        recognition.onend = () => {
+          isRecording = false;
+          document.getElementById("mic-btn").textContent = "🎤";
+          micStatus.textContent = "";
+        };
+      }
+
+      if (!isRecording) {
+        recognition.start();
+        isRecording = true;
+        document.getElementById("mic-btn").textContent = "⏹️";
+        micStatus.textContent = "🎙️ Listening...";
+      } else {
+        recognition.stop();
+        isRecording = false;
+        document.getElementById("mic-btn").textContent = "🎤";
+        micStatus.textContent = "";
+      }
+    }
+
+    input.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    function handlePreambleChange() {
+      const preamble = document.getElementById("preamble").value;
+      const bruiseSection = document.getElementById("bruise-section");
+      if (preamble.toLowerCase().includes("doctor")) {
+        bruiseSection.style.display = "block";
+      } else {
+        bruiseSection.style.display = "none";
+      }
+    }
+    function sendMessage() {
+  const message = input.value.trim();
+  if (!message) return;
+
+  const preamble = document.getElementById("preamble").value;
+
+  appendMessage("You", message, "user");
+  input.value = "";
+
+  document.getElementById("loading").style.display = "block";
+
+  fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, preamble })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("loading").style.display = "none";
+    appendMessage("Bot", data.reply, "bot");
+  })
+  .catch(err => {
+    document.getElementById("loading").style.display = "none";
+    appendMessage("Error", "Could not connect to server.", "bot");
+    console.error(err);
+  });
+}
+
+  let historyVisible = false;
+
+  function toggleHistory() {
+    const historyBox = document.getElementById("history-box");
+    const toggleButton = document.querySelector("button[onclick='toggleHistory()']");
+
+    if (!historyVisible) {
+      fetch("/history")
+        .then(res => res.json())
+        .then(history => {
+          if (history.length === 0) {
+            historyBox.innerHTML = "<p>No history available.</p>";
+          } else {
+            historyBox.innerHTML = "<h3>📜 Chat History:</h3>";
+            history.forEach(entry => {
+              const div = document.createElement("div");
+              div.innerHTML = `<strong>${entry.role === 'user' ? 'You' : 'Bot'}:</strong> ${entry.content}`;
+              historyBox.appendChild(div);
+            });
+          }
+          historyBox.style.display = "block";
+          toggleButton.textContent = "📜 Hide History";
+          historyVisible = true;
+        })
+        .catch(err => {
+          console.error("Failed to fetch history:", err);
+        });
+    } else {
+      historyBox.style.display = "none";
+      toggleButton.textContent = "📜 Show History";
+      historyVisible = false;
+    }
+  }
+  function clearHistory() {
+  fetch("/clear_history", { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      document.getElementById("chat-box").innerHTML = ""; // optional: clear chat box too
+      if (document.getElementById("history-box")) {
+        document.getElementById("history-box").innerHTML = "";
+      }
+    })
+    .catch(err => {
+      console.error("Error clearing history:", err);
+    });
+  }
+
+
+</script>
+</body>
+</html>
