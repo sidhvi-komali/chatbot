@@ -197,12 +197,12 @@
   <h1>AI Chatbot</h1>
 
   <label for="preamble">Select Chatbot Type:</label>
-  <select id="preamble" onchange="handlePreambleChange()">
+  <select id="preamble" onchange="handlePreambleChange()" onchange="clearHistory()">
     <option value="You are a math helper. Answer in 2 sentences.">Math Helper</option>
     <option value="You are a doctor. Answer in 2 sentences. Provide one line evidence with a link.">Doctor</option>
     <option value="You are a travel expert. Recommend destinations and give short tips.">Travel Guide</option>
     <option value="You are a coding assistant. Keep answers short and add one-liner examples.">Code Helper</option>
-    <option value="You are a mental wellness coach. Respond in a calming and supportive tone.">Wellness Coach</option>
+    <option value="You are a mental wellness coach. Respond in a calming and supportive tone in about 2-3 sentences.">Wellness Coach</option>
     <option value="You are a history teacher. Answer in 2-3 sentences and include 1 historical fact.">History Buff</option>
     <option value="You are a sarcastic chatbot. Respond with dry humor in 2 short lines.">Sarcastic Bot</option>
     <option value="You are a friendly chatbot. Answer casually in 2 short sentences.">Casual Conversation</option>
@@ -454,8 +454,6 @@
       console.error("Error clearing history:", err);
     });
   }
-
-
 </script>
 </body>
 </html>
